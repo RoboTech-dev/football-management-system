@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Football Management System (FMS) – System B</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    /* Simple custom styles on top of Tailwind utilities */
+    .scroll-section {
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+    }
+    .formation-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900">
+  <div class="min-h-screen flex flex-col">
+    <!-- Top Bar -->
+    <header class="bg-slate-900 text-white flex items-center justify-between px-6 py-3 shadow-md">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-slate-900">F</div>
+        <div>
+          <h1 class="text-lg font-semibold leading-tight">Football Management System</h1>
+          <p class="text-xs text-slate-300">Club & Academy Operations Console</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 text-xs">
+        <div class="hidden sm:flex gap-3">
+          <div class="text-right">
+            <div id="top-role-label" class="font-semibold">Role: Admin</div>
+            <div id="top-club-label" class="text-slate-300">Club: Elite United FC</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="roleSelect" class="text-xs text-slate-300">Switch Role</label>
+          <select id="roleSelect" class="text-xs bg-slate-800 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            <option value="admin" selected>Admin / Director</option>
+            <option value="coach">Coach</option>
+            <option value="analyst">Analyst</option>
+            <option value="staff">Staff</option>
+            <option value="player">Player</option>
+            <option value="guest">Guest (Read Only)</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Sidebar Navigation -->
+      <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div class="px-4 py-3 border-b border-slate-200">
+          <p class="text-xs font-semibold text-slate-500 mb-1">NAVIGATION</p>
+          <p class="text-xs text-slate-400">Modules based on real club workflows</p>
+        </div>
+        <nav id="nav" class="flex-1 overflow-y-auto text-sm">
+          <ul class="py-2">
+            <li><button data-target="dashboard" class="nav-link w-full text-left px-4 py-2.5 flex items-center gap-2 hover:bg-slate-100 text-emerald-700 font-semibold border-l-4 border-emerald-500">Dashboard</button></li>
+            <li><button data-target="players" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">1. Player Management</button></li>
+            <li><button data-target="teams" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">2. Team & Squad</button></li>
+            <li><button data-target="matches" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">3. Match Management</button></li>
+            <li><button data-target="leagues" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">4. League & Tournaments</button></li>
+            <li><button data-target="training" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">5. Training & Coaching</button></li>
+            <li><button data-target="finances" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">6. Finance & Admin</button></li>
+            <li><button data-target="transfers" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">7. Transfers & Contracts</button></li>
+            <li><button data-target="staff" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">8. Club Staff</button></li>
+            <li><button data-target="facilities" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">9. Facilities</button></li>
+            <li><button data-target="fans" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">10. Fans & Members</button></li>
+            <li><button data-target="security" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">11. Security & Access</button></li>
+            <li><button data-target="settings" class="nav-link w-full text-left px-4 py-2.5 hover:bg-slate-100 border-l-4 border-transparent">12. Settings</button></li>
+          </ul>
+        </nav>
+        <div class="px-4 py-3 border-t border-slate-200 text-[11px] text-slate-500">
+          Inspired by FIFA Connect, Football Manager, TeamSnap, MyCoachingApp & FA Club Portal.
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-4 sm:p-6 overflow-hidden">
+        <!-- Dashboard -->
+        <section id="dashboard" class="scroll-section">
+          <div class="flex flex-wrap gap-3 items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">Club Operations Dashboard</h2>
+              <p class="text-xs text-slate-500">Snapshot of players, fixtures, finances & training</p>
+            </div>
+            <div class="flex gap-2 text-xs">
+              <span class="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">Realistic FMS Demo</span>
+              <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Client-side Prototype</span>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-4 gap-4 mb-4">
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <p class="text-[11px] text-slate-500 mb-1">Registered Players</p>
+              <p id="stat-players" class="text-2xl font-semibold">0</p>
+              <p class="text-[11px] text-emerald-700 mt-1">Academy & first team combined</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <p class="text-[11px] text-slate-500 mb-1">Upcoming Fixtures (7 days)</p>
+              <p id="stat-fixtures" class="text-2xl font-semibold">0</p>
+              <p class="text-[11px] text-slate-500 mt-1">League, cups & friendlies</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <p class="text-[11px] text-slate-500 mb-1">Monthly Net Balance</p>
+              <p id="stat-balance" class="text-2xl font-semibold">£0</p>
+              <p class="text-[11px] text-emerald-700 mt-1">Revenue - Expenses</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <p class="text-[11px] text-slate-500 mb-1">Training Sessions This Week</p>
+              <p id="stat-training" class="text-2xl font-semibold">0</p>
+              <p class="text-[11px] text-slate-500 mt-1">Across all age groups</p>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4">
+            <!-- Recent fixtures -->
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100 lg:col-span-2">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Upcoming & Recent Matches</h3>
+                <button data-target="matches" class="to-section text-[11px] text-emerald-700 hover:underline">Go to Match Management →</button>
+              </div>
+              <table class="w-full text-[11px] text-left">
+                <thead class="border-b border-slate-200 text-slate-500">
+                  <tr>
+                    <th class="py-1.5">Date</th>
+                    <th class="py-1.5">Competition</th>
+                    <th class="py-1.5">Opponent</th>
+                    <th class="py-1.5">Venue</th>
+                    <th class="py-1.5 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-matches"></tbody>
+              </table>
+            </div>
+            <!-- Health & risk panel -->
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <h3 class="text-sm font-semibold mb-2">Squad Health & Risk</h3>
+              <div class="space-y-2 text-[11px]">
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-500">Injury List</span>
+                    <span id="stat-injuries" class="font-semibold">0</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="bar-injuries" class="h-full bg-rose-500 w-0"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-500">Average Fitness</span>
+                    <span id="stat-fitness" class="font-semibold">-</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="bar-fitness" class="h-full bg-emerald-500 w-0"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-500">Morale Snapshot</span>
+                    <span id="stat-morale" class="font-semibold">-</span>
+                  </div>
+                  <p class="text-slate-500" id="text-morale-detail">Add players and training notes to compute morale.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <h3 class="text-sm font-semibold mb-1">Technical Areas Covered</h3>
+              <ul class="list-disc list-inside space-y-1 text-slate-600">
+                <li>Player registration, contracts, fitness & scouting</li>
+                <li>Squad selection, formations & tactical notes</li>
+                <li>Fixtures, live stats & post-match analysis</li>
+                <li>League tables & tournament brackets</li>
+              </ul>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <h3 class="text-sm font-semibold mb-1">Operational Control</h3>
+              <ul class="list-disc list-inside space-y-1 text-slate-600">
+                <li>Finance, wages, sponsorship & ticketing</li>
+                <li>Transfer negotiations & contract renewals</li>
+                <li>Staff structure, roles & responsibilities</li>
+                <li>Facilities, maintenance & equipment</li>
+              </ul>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-3 border border-slate-100">
+              <h3 class="text-sm font-semibold mb-1">Governance & Access</h3>
+              <ul class="list-disc list-inside space-y-1 text-slate-600">
+                <li>Role-based permissions (Admin, Coach, Analyst, Player)</li>
+                <li>Read-only guest access for auditors or parents</li>
+                <li>Audit-style logs for transfers & finance entries</li>
+                <li>Compliance-ready structure (GDPR-friendly patterns)</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Player Management -->
+        <section id="players" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">1. Player Management</h2>
+              <p class="text-xs text-slate-500">Personal details, contracts, medical, stats & scouting</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Inspired by Football Manager player screens</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4">
+            <!-- Player form -->
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Register / Update Player</h3>
+                <span class="text-[10px] text-slate-500">Required for all squads</span>
+              </div>
+              <form id="playerForm" class="space-y-2 text-[11px]">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Full Name</label>
+                    <input required id="p-name" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Age</label>
+                    <input type="number" min="8" max="50" id="p-age" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Primary Position</label>
+                    <select id="p-position" class="w-full border border-slate-200 rounded px-2 py-1 text-xs">
+                      <option>GK</option>
+                      <option>RB</option>
+                      <option>CB</option>
+                      <option>LB</option>
+                      <option>DM</option>
+                      <option>CM</option>
+                      <option>AM</option>
+                      <option>RW</option>
+                      <option>LW</option>
+                      <option>ST</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Squad</label>
+                    <select id="p-squad" class="w-full border border-slate-200 rounded px-2 py-1 text-xs">
+                      <option>First Team</option>
+                      <option>U21</option>
+                      <option>U18</option>
+                      <option>Academy</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Nationality</label>
+                    <input id="p-nationality" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="e.g., English" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Contact</label>
+                    <input id="p-contact" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="Parent / Agent" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Overall Rating</label>
+                    <input type="number" min="1" max="100" id="p-rating" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="1-100" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Fitness (%)</label>
+                    <input type="number" min="1" max="100" id="p-fitness" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="e.g., 92" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Morale (1-10)</label>
+                    <input type="number" min="1" max="10" id="p-morale" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Contract (Weekly Wage £)</label>
+                    <input type="number" min="0" id="p-wage" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Contract End</label>
+                    <input type="date" id="p-contract-end" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Medical & Injury Notes</label>
+                  <textarea id="p-medical" rows="2" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="E.g., hamstring strain, return date..."></textarea>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Scouting / Development Notes</label>
+                  <textarea id="p-scouting" rows="2" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="E.g., high potential, improve decision making..."></textarea>
+                </div>
+                <div class="flex justify-between items-center pt-1">
+                  <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                    <input id="p-injured" type="checkbox" class="rounded border-slate-300" />
+                    <label for="p-injured">Currently injured</label>
+                  </div>
+                  <button type="submit" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-xs">Save Player</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Player list -->
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2 flex flex-col">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <h3 class="text-sm font-semibold">Registered Players</h3>
+                <div class="flex flex-wrap gap-2 text-[11px] items-center">
+                  <select id="filter-squad" class="border border-slate-200 rounded px-2 py-1 text-xs">
+                    <option value="">All Squads</option>
+                    <option>First Team</option>
+                    <option>U21</option>
+                    <option>U18</option>
+                    <option>Academy</option>
+                  </select>
+                  <select id="filter-position" class="border border-slate-200 rounded px-2 py-1 text-xs">
+                    <option value="">All Positions</option>
+                    <option>GK</option>
+                    <option>RB</option>
+                    <option>CB</option>
+                    <option>LB</option>
+                    <option>DM</option>
+                    <option>CM</option>
+                    <option>AM</option>
+                    <option>RW</option>
+                    <option>LW</option>
+                    <option>ST</option>
+                  </select>
+                  <input id="filter-search" placeholder="Search name..." class="border border-slate-200 rounded px-2 py-1 text-xs" />
+                </div>
+              </div>
+              <div class="overflow-x-auto text-[11px] flex-1">
+                <table class="w-full text-left">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Name</th>
+                      <th class="py-1.5">Pos</th>
+                      <th class="py-1.5">Squad</th>
+                      <th class="py-1.5">Rating</th>
+                      <th class="py-1.5">Fitness</th>
+                      <th class="py-1.5">Morale</th>
+                      <th class="py-1.5">Contract</th>
+                      <th class="py-1.5 text-right">Flags</th>
+                    </tr>
+                  </thead>
+                  <tbody id="playerTable"></tbody>
+                </table>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-500">Track attendance, performance and injuries for every player, similar to professional FMS tools.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Team & Squad Management -->
+        <section id="teams" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">2. Team & Squad Management</h2>
+              <p class="text-xs text-slate-500">Lineups, formations, tactical notes & rotation planning</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Similar to TeamSnap & FM squad screens</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Matchday Squad Builder</h3>
+                <span class="text-[10px] text-slate-500">Starting XI + Bench</span>
+              </div>
+              <div class="space-y-2 text-[11px] flex-1">
+                <div class="flex gap-2 items-center">
+                  <label class="text-slate-600">Formation</label>
+                  <select id="formationSelect" class="border border-slate-200 rounded px-2 py-1 text-xs flex-1">
+                    <option>4-3-3</option>
+                    <option>4-2-3-1</option>
+                    <option>4-4-2</option>
+                    <option>3-5-2</option>
+                    <option>3-4-3</option>
+                    <option>5-3-2</option>
+                  </select>
+                </div>
+                <div class="formation-grid text-[10px] mt-1" id="formationGrid">
+                  <!-- JS fills positions based on formation -->
+                </div>
+                <p class="mt-2 text-[10px] text-slate-500">Click a position cell to assign a registered player from the Player Management module.</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 flex flex-col lg:col-span-2">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Squad Depth Chart</h3>
+                <span class="text-[10px] text-slate-500">Position hierarchy & rotation planning</span>
+              </div>
+              <div class="overflow-x-auto text-[11px] flex-1">
+                <table class="w-full text-left">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Position</th>
+                      <th class="py-1.5">1st Choice</th>
+                      <th class="py-1.5">2nd Choice</th>
+                      <th class="py-1.5">3rd Choice</th>
+                    </tr>
+                  </thead>
+                  <tbody id="depthTable"></tbody>
+                </table>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-500">Depth is calculated automatically using player rating, fitness and primary position.</p>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Training Calendar</h3>
+                <span class="text-[10px] text-slate-500">Weekly micro-cycle</span>
+              </div>
+              <div id="trainingCalendar" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Tactical Instructions</h3>
+                <span class="text-[10px] text-slate-500">Per match plan</span>
+              </div>
+              <form id="tacticsForm" class="space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Mentality</label>
+                    <select id="tac-mentality" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                      <option>Very Defensive</option>
+                      <option>Defensive</option>
+                      <option>Balanced</option>
+                      <option>Positive</option>
+                      <option>Attacking</option>
+                      <option>Very Attacking</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Pressing</label>
+                    <select id="tac-press" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                      <option>Low Block</option>
+                      <option>Mid Block</option>
+                      <option>High Press</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">In Possession</label>
+                  <textarea id="tac-possession" rows="2" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Build-up style, width, tempo..."></textarea>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Out of Possession</label>
+                  <textarea id="tac-out" rows="2" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Pressing triggers, defensive line..."></textarea>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-slate-900 text-white text-xs">Save Tactical Plan</button>
+                <p id="tacticsStatus" class="text-[10px] text-emerald-600 mt-1"></p>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- Match Management -->
+        <section id="matches" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">3. Match Management</h2>
+              <p class="text-xs text-slate-500">Fixtures, referees, results, live stats & analysis</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Similar to FA Club Portal & pro match centers</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Create / Edit Fixture</h3>
+                <span class="text-[10px] text-slate-500">League, cup or friendly</span>
+              </div>
+              <form id="fixtureForm" class="space-y-2 text-[11px]">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Competition</label>
+                  <input id="f-competition" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="Premier League, Cup, Friendly..." />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Date & Time</label>
+                    <input type="datetime-local" id="f-date" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Venue</label>
+                    <select id="f-venue" class="w-full border border-slate-200 rounded px-2 py-1 text-xs">
+                      <option>Home</option>
+                      <option>Away</option>
+                      <option>Neutral</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Opponent</label>
+                    <input id="f-opponent" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Referee</label>
+                    <input id="f-referee" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Our Goals</label>
+                    <input type="number" min="0" id="f-goals-for" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Their Goals</label>
+                    <input type="number" min="0" id="f-goals-against" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Status</label>
+                    <select id="f-status" class="w-full border border-slate-200 rounded px-2 py-1 text-xs">
+                      <option>Scheduled</option>
+                      <option>Played</option>
+                      <option>Postponed</option>
+                      <option>Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Possession %</label>
+                    <input type="number" min="0" max="100" id="f-possession" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Shots</label>
+                    <input type="number" min="0" id="f-shots" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Fouls</label>
+                    <input type="number" min="0" id="f-fouls" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Match Notes / Highlights</label>
+                  <textarea id="f-notes" rows="2" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="Key moments, tactical observations, player ratings..."></textarea>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Save Fixture</button>
+              </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Fixture List</h3>
+                <div class="flex gap-2 text-[11px] items-center">
+                  <select id="fixtureFilter" class="border border-slate-200 rounded px-2 py-1 text-xs">
+                    <option value="all">All</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="played">Played</option>
+                  </select>
+                  <span class="text-slate-400">Automatic league impact</span>
+                </div>
+              </div>
+              <div class="overflow-x-auto text-[11px] flex-1">
+                <table class="w-full text-left">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Date</th>
+                      <th class="py-1.5">Competition</th>
+                      <th class="py-1.5">Opponent</th>
+                      <th class="py-1.5">Venue</th>
+                      <th class="py-1.5">Score</th>
+                      <th class="py-1.5">Status</th>
+                      <th class="py-1.5 text-right">xG / Stats</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fixtureTable"></tbody>
+                </table>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-500">Results automatically feed into league standings and player stats in a real deployment.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- League / Tournament Management -->
+        <section id="leagues" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">4. League & Tournament Management</h2>
+              <p class="text-xs text-slate-500">Tables, fixtures generation & knockout brackets</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Inspired by FIFA Connect structures</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">League Table</h3>
+                <span class="text-[10px] text-slate-500">Auto-updated from results</span>
+              </div>
+              <div class="overflow-x-auto text-[11px] flex-1">
+                <table class="w-full text-left">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">#</th>
+                      <th class="py-1.5">Team</th>
+                      <th class="py-1.5">P</th>
+                      <th class="py-1.5">W</th>
+                      <th class="py-1.5">D</th>
+                      <th class="py-1.5">L</th>
+                      <th class="py-1.5">GF</th>
+                      <th class="py-1.5">GA</th>
+                      <th class="py-1.5">GD</th>
+                      <th class="py-1.5">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody id="leagueTable"></tbody>
+                </table>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-500">Use match results from Match Management to automatically update standings.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1 text-[11px]">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Tournament Bracket</h3>
+                <span class="text-[10px] text-slate-500">Knockout planner</span>
+              </div>
+              <form id="tournamentForm" class="space-y-2 mb-3">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Tournament Name</label>
+                  <input id="t-name" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Teams (comma separated)</label>
+                  <input id="t-teams" class="w-full border border-slate-200 rounded px-2 py-1 text-xs" placeholder="Team A, Team B, Team C..." />
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-slate-900 text-white text-xs">Generate Bracket</button>
+              </form>
+              <div id="tournamentBracket" class="space-y-2 text-[11px]"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Training & Coaching -->
+        <section id="training" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">5. Training & Coaching Module</h2>
+              <p class="text-xs text-slate-500">Plans, drills, development tracking & analysis</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Similar to MyCoachingApp & FM training screens</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Weekly Training Plan</h3>
+                <span class="text-[10px] text-slate-500">High-level overview</span>
+              </div>
+              <form id="trainingPlanForm" class="grid sm:grid-cols-3 gap-2 mb-3">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Day</label>
+                  <select id="tr-day" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                    <option>Saturday</option>
+                    <option>Sunday</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Focus</label>
+                  <select id="tr-focus" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Recovery</option>
+                    <option>Fitness</option>
+                    <option>Technical</option>
+                    <option>Tactical</option>
+                    <option>Set Pieces</option>
+                    <option>Match Prep</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Notes</label>
+                  <input id="tr-notes" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Short description" />
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs sm:col-span-3 justify-self-start">Add Session</button>
+              </form>
+              <div id="trainingPlanList" class="grid sm:grid-cols-3 gap-2"></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <h3 class="text-sm font-semibold mb-2">Drill Library</h3>
+              <ul class="space-y-1 text-slate-600">
+                <li><span class="font-semibold">Rondo 4v2</span> – possession, scanning, short passing.</li>
+                <li><span class="font-semibold">11v0 Shadow Play</span> – tactical shape, automatisms.</li>
+                <li><span class="font-semibold">High-Intensity Intervals</span> – repeated sprints conditioning.</li>
+                <li><span class="font-semibold">Finishing Circuit</span> – crossing & shooting patterns.</li>
+                <li><span class="font-semibold">Pressing Triggers</span> – coordinated press in zones.</li>
+              </ul>
+              <p class="mt-2 text-[10px] text-slate-500">Video or drawing integrations can be added via external services in a full system.</p>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <h3 class="text-sm font-semibold mb-2">Player Development Overview</h3>
+              <div id="developmentList" class="space-y-2"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <h3 class="text-sm font-semibold mb-2">Coach Evaluations & Notes</h3>
+              <form id="coachNoteForm" class="space-y-2 mb-2">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Player Name</label>
+                  <input id="cn-player" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Evaluation</label>
+                  <textarea id="cn-note" rows="2" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Strengths, areas to improve, role, mentality..."></textarea>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-slate-900 text-white text-xs">Save Note</button>
+              </form>
+              <div id="coachNotes" class="space-y-1 max-h-40 overflow-y-auto text-[11px]"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Finance & Administration -->
+        <section id="finances" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">6. Finance & Administration</h2>
+              <p class="text-xs text-slate-500">Salaries, sponsorship, ticketing, transfers & budgets</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Inspired by Football Manager finance view</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Finance Entries</h3>
+                <span class="text-[10px] text-slate-500">Income & expenses</span>
+              </div>
+              <form id="financeForm" class="grid sm:grid-cols-5 gap-2 mb-2">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-600 mb-0.5">Description</label>
+                  <input id="fin-desc" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Sponsorship, Wages, Ticket sales..." />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Type</label>
+                  <select id="fin-type" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Amount (£)</label>
+                  <input type="number" id="fin-amount" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Category</label>
+                  <select id="fin-cat" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Wages</option>
+                    <option>Sponsorship</option>
+                    <option>Ticketing</option>
+                    <option>Merchandise</option>
+                    <option>Transfers</option>
+                    <option>Facilities</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs sm:col-span-5 justify-self-start">Add Entry</button>
+              </form>
+              <div class="overflow-x-auto max-h-56 overflow-y-auto">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Description</th>
+                      <th class="py-1.5">Type</th>
+                      <th class="py-1.5">Category</th>
+                      <th class="py-1.5 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="financeTable"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <h3 class="text-sm font-semibold mb-2">Budget Summary</h3>
+              <div class="space-y-1">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Monthly Income</span>
+                  <span id="fin-income" class="font-semibold">£0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Monthly Expenses</span>
+                  <span id="fin-expense" class="font-semibold">£0</span>
+                </div>
+                <div class="flex justify-between border-t border-slate-200 pt-1 mt-1">
+                  <span class="text-slate-700">Net Balance</span>
+                  <span id="fin-net" class="font-semibold">£0</span>
+                </div>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-500">Use this as a quick reference for sustainability and wage budget control.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Transfers & Contracts -->
+        <section id="transfers" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">7. Transfers & Contracts</h2>
+              <p class="text-xs text-slate-500">Negotiations, loans, clauses & history log</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Inspired by FIFA TMS & FM transfer centre</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <h3 class="text-sm font-semibold mb-2">New Transfer / Loan</h3>
+              <form id="transferForm" class="space-y-2">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Player</label>
+                  <input id="tr-player" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Player name" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">From Club</label>
+                    <input id="tr-from" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">To Club</label>
+                    <input id="tr-to" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Type</label>
+                    <select id="tr-type" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                      <option>Permanent</option>
+                      <option>Loan</option>
+                      <option>Free Transfer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Fee (£)</label>
+                    <input type="number" id="tr-fee" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Status</label>
+                  <select id="tr-status" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Ongoing</option>
+                    <option>Agreed</option>
+                    <option>Completed</option>
+                    <option>Cancelled</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Key Clauses</label>
+                  <textarea id="tr-clauses" rows="2" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="Sell-on %, appearance bonuses, release clause..."></textarea>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Log Transfer</button>
+              </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Transfer History</h3>
+                <span class="text-[10px] text-slate-500">Audit-style log</span>
+              </div>
+              <div class="overflow-x-auto max-h-64 overflow-y-auto">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Player</th>
+                      <th class="py-1.5">From</th>
+                      <th class="py-1.5">To</th>
+                      <th class="py-1.5">Type</th>
+                      <th class="py-1.5">Fee</th>
+                      <th class="py-1.5">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transferTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Club Staff Management -->
+        <section id="staff" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">8. Club Staff Management</h2>
+              <p class="text-xs text-slate-500">Coaches, medical, scouts, analysts & board</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Like staff pages in Football Manager</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <h3 class="text-sm font-semibold mb-2">Add Staff Member</h3>
+              <form id="staffForm" class="space-y-2">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Name</label>
+                  <input id="st-name" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Role</label>
+                  <select id="st-role" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Head Coach</option>
+                    <option>Assistant Coach</option>
+                    <option>Goalkeeping Coach</option>
+                    <option>Fitness Coach</option>
+                    <option>Analyst</option>
+                    <option>Scout</option>
+                    <option>Physio</option>
+                    <option>Doctor</option>
+                    <option>Academy Director</option>
+                    <option>Sporting Director</option>
+                    <option>Chairman</option>
+                  </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Discipline (1-20)</label>
+                    <input type="number" min="1" max="20" id="st-discipline" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Motivation (1-20)</label>
+                    <input type="number" min="1" max="20" id="st-motivation" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Contract End</label>
+                  <input type="date" id="st-contract" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Save Staff</button>
+              </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Staff Roster</h3>
+                <span class="text-[10px] text-slate-500">Technical & executive</span>
+              </div>
+              <div class="overflow-x-auto max-h-64 overflow-y-auto">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Name</th>
+                      <th class="py-1.5">Role</th>
+                      <th class="py-1.5">Discipline</th>
+                      <th class="py-1.5">Motivation</th>
+                      <th class="py-1.5">Contract End</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staffTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Facility Management -->
+        <section id="facilities" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">9. Facility Management</h2>
+              <p class="text-xs text-slate-500">Stadium, training ground, equipment & maintenance</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Reflects FM club vision facilities view</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2">
+              <h3 class="text-sm font-semibold mb-2">Facilities Overview</h3>
+              <div class="grid sm:grid-cols-3 gap-3">
+                <div class="border border-slate-100 rounded p-2">
+                  <p class="text-[10px] text-slate-500 mb-1">Stadium</p>
+                  <p class="font-semibold" id="fac-stadium-name">Elite Arena</p>
+                  <p class="text-[10px] text-slate-500">Capacity: <span id="fac-capacity">18,500</span></p>
+                  <p class="text-[10px] text-slate-500">Pitch Quality: <span id="fac-pitch">Good</span></p>
+                </div>
+                <div class="border border-slate-100 rounded p-2">
+                  <p class="text-[10px] text-slate-500 mb-1">Training Ground</p>
+                  <p class="font-semibold" id="fac-training-name">Elite Campus</p>
+                  <p class="text-[10px] text-slate-500">Facilities: <span id="fac-training-level">Excellent</span></p>
+                  <p class="text-[10px] text-slate-500">Youth: <span id="fac-youth-level">Good</span></p>
+                </div>
+                <div class="border border-slate-100 rounded p-2">
+                  <p class="text-[10px] text-slate-500 mb-1">Equipment</p>
+                  <p class="text-[10px] text-slate-500">Balls: <span id="fac-balls">80</span></p>
+                  <p class="text-[10px] text-slate-500">GPS Vests: <span id="fac-gps">24</span></p>
+                  <p class="text-[10px] text-slate-500">Analysis Cameras: <span id="fac-cameras">4</span></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <h3 class="text-sm font-semibold mb-2">Maintenance Tasks</h3>
+              <form id="maintenanceForm" class="space-y-2 mb-2">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Task</label>
+                  <input id="mt-task" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="E.g., pitch renovation" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Area</label>
+                  <select id="mt-area" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Stadium</option>
+                    <option>Training Ground</option>
+                    <option>Gym</option>
+                    <option>Equipment</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Add Task</button>
+              </form>
+              <ul id="maintenanceList" class="space-y-1 max-h-40 overflow-y-auto text-[11px]"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Fan & Membership System -->
+        <section id="fans" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">10. Fan & Membership System</h2>
+              <p class="text-xs text-slate-500">Supporter registration, ticketing & communication</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Similar to club CRM / ticketing portals</span>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-1">
+              <h3 class="text-sm font-semibold mb-2">New Member</h3>
+              <form id="memberForm" class="space-y-2">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Name</label>
+                  <input id="mb-name" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Email</label>
+                  <input id="mb-email" type="email" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Membership Type</label>
+                  <select id="mb-type" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                    <option>Season Ticket</option>
+                    <option>Member</option>
+                    <option>Junior</option>
+                    <option>VIP</option>
+                  </select>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Register Member</button>
+              </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 lg:col-span-2 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold">Members & Ticketing</h3>
+                <span class="text-[10px] text-slate-500">Basic CRM view</span>
+              </div>
+              <div class="overflow-x-auto max-h-64 overflow-y-auto">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Name</th>
+                      <th class="py-1.5">Email</th>
+                      <th class="py-1.5">Type</th>
+                      <th class="py-1.5">Tickets (est.)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="memberTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3 text-[11px] mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-sm font-semibold">Fan Communication</h3>
+              <span class="text-[10px] text-slate-500">Email / SMS style messages</span>
+            </div>
+            <form id="messageForm" class="grid sm:grid-cols-4 gap-2 mb-2">
+              <div class="sm:col-span-1">
+                <label class="block text-slate-600 mb-0.5">Audience</label>
+                <select id="msg-audience" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                  <option>All Members</option>
+                  <option>Season Ticket Holders</option>
+                  <option>Junior Members</option>
+                  <option>VIP</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-slate-600 mb-0.5">Subject</label>
+                <input id="msg-subject" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+              </div>
+              <div class="sm:col-span-4">
+                <label class="block text-slate-600 mb-0.5">Message</label>
+                <textarea id="msg-body" rows="2" class="border border-slate-200 rounded px-2 py-1 text-xs w-full"></textarea>
+              </div>
+              <button type="submit" class="px-3 py-1 rounded bg-slate-900 text-white text-xs sm:col-span-4 justify-self-start">Queue Message</button>
+            </form>
+            <ul id="messageLog" class="space-y-1 max-h-32 overflow-y-auto"></ul>
+          </div>
+        </section>
+
+        <!-- Security & Access Control -->
+        <section id="security" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">11. Security & Access Control</h2>
+              <p class="text-xs text-slate-500">Role-based permissions & data protection</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Similar to FIFA Connect role management</span>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <h3 class="text-sm font-semibold mb-2">Current Session</h3>
+              <p class="text-slate-600 mb-1">Selected Role: <span id="sec-role" class="font-semibold">Admin</span></p>
+              <ul class="list-disc list-inside space-y-1 text-slate-600" id="sec-permissions"></ul>
+              <p class="mt-2 text-[10px] text-slate-500">This demo changes what you can edit in the UI, similar to how production systems lock modules for certain users.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <h3 class="text-sm font-semibold mb-2">Data Protection Notes</h3>
+              <ul class="list-disc list-inside space-y-1 text-slate-600">
+                <li>Personal data (players, staff, fans) is role-protected and not visible to guests.</li>
+                <li>Financial and transfer data is restricted to Admin / Sporting Director roles.</li>
+                <li>Medical data is visible only to medical staff and head coach in a full system.</li>
+                <li>Audit logs keep track of sensitive actions (transfers, contract changes).</li>
+              </ul>
+              <p class="mt-2 text-[10px] text-slate-500">This prototype runs completely in your browser; no real data is stored or transmitted.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section id="settings" class="scroll-section hidden">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">12. Settings</h2>
+              <p class="text-xs text-slate-500">Session password & basic user / role configuration</p>
+            </div>
+            <span class="text-[11px] text-slate-500">Prototype-only, no real authentication</span>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-4 mb-4 text-[11px]">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <h3 class="text-sm font-semibold mb-2">Change Session Password</h3>
+              <form id="passwordForm" class="space-y-2 mb-2">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">Current Password</label>
+                  <input type="password" id="set-current-pass" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">New Password</label>
+                    <input type="password" id="set-new-pass" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Confirm New Password</label>
+                    <input type="password" id="set-confirm-pass" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" />
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Update Password</button>
+                  <button type="button" id="resetPassBtn" class="px-3 py-1 rounded bg-slate-900 text-white text-xs">Reset to Default</button>
+                </div>
+                <p id="passwordStatus" class="text-[10px] text-slate-500 mt-1"></p>
+              </form>
+              <p class="text-[10px] text-slate-400">Default demo password is <span class="font-mono">admin123</span>. No data is sent to a server.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+              <h3 class="text-sm font-semibold mb-2">User & Role Management (Demo)</h3>
+              <form id="userForm" class="space-y-2 mb-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">User Name</label>
+                    <input id="usr-name" class="border border-slate-200 rounded px-2 py-1 text-xs w-full" placeholder="e.g., Coach Lee" />
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 mb-0.5">Role</label>
+                    <select id="usr-role" class="border border-slate-200 rounded px-2 py-1 text-xs w-full">
+                      <option value="admin">Admin</option>
+                      <option value="coach">Coach</option>
+                      <option value="analyst">Analyst</option>
+                      <option value="staff">Staff</option>
+                      <option value="player">Player</option>
+                      <option value="guest">Guest</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs">Add / Update User</button>
+              </form>
+              <div class="max-h-40 overflow-y-auto">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="border-b border-slate-200 text-slate-500">
+                    <tr>
+                      <th class="py-1.5">Name</th>
+                      <th class="py-1.5">Role</th>
+                      <th class="py-1.5 text-right">Switch To</th>
+                    </tr>
+                  </thead>
+                  <tbody id="userTable"></tbody>
+                </table>
+              </div>
+              <p class="mt-2 text-[10px] text-slate-500">Click "Use" to switch the current session role to that users role.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Simple in-memory data stores
+    const state = {
+      players: [],
+      fixtures: [],
+      finances: [],
+      transfers: [],
+      staff: [],
+      maintenance: [],
+      members: [],
+      messages: [],
+      trainingSessions: [],
+      coachNotes: [],
+      tactics: null,
+      tournament: null,
+      role: 'admin',
+      users: [], // simple user list for role assignment in Settings
+      password: 'admin123', // demo password for current session (no real auth)
+    };
+
+    // Utility
+    function formatCurrency(v) {
+      if (isNaN(v)) return '£0';
+      return '£' + v.toLocaleString('en-GB', { maximumFractionDigits: 0 });
+    }
+
+    function formatDateTime(dt) {
+      if (!dt) return '-';
+      const d = new Date(dt);
+      if (isNaN(d)) return dt;
+      return d.toLocaleString();
+    }
+
+    // Navigation handling
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('main section');
+
+    function showSection(id) {
+      const meta = roleRules[state.role];
+      const allowed = meta.visibleModules;
+      const targetId = allowed.includes(id) ? id : 'dashboard';
+
+      sections.forEach(sec => {
+        const shouldShow = sec.id === targetId && allowed.includes(sec.id);
+        sec.classList.toggle('hidden', !shouldShow);
+      });
+      navLinks.forEach(btn => {
+        const isVisible = allowed.includes(btn.dataset.target);
+        btn.classList.toggle('hidden', !isVisible);
+        const active = btn.dataset.target === targetId;
+        btn.classList.toggle('text-emerald-700', active);
+        btn.classList.toggle('font-semibold', active);
+        btn.classList.toggle('border-emerald-500', active);
+        btn.classList.toggle('border-transparent', !active);
+        btn.classList.toggle('bg-slate-50', active);
+      });
+    }
+
+    navLinks.forEach(btn => {
+      btn.addEventListener('click', () => showSection(btn.dataset.target));
+    });
+
+    document.querySelectorAll('.to-section').forEach(btn => {
+      btn.addEventListener('click', () => showSection(btn.dataset.target));
+    });
+
+    // Role-based access control
+    const roleSelect = document.getElementById('roleSelect');
+    const secRole = document.getElementById('sec-role');
+    const secPermissions = document.getElementById('sec-permissions');
+
+    const roleRules = {
+      admin: {
+        label: 'Admin / Director',
+        canEdit: ['players', 'teams', 'matches', 'leagues', 'training', 'finances', 'transfers', 'staff', 'facilities', 'fans', 'settings'],
+        visibleModules: ['dashboard', 'players', 'teams', 'matches', 'leagues', 'training', 'finances', 'transfers', 'staff', 'facilities', 'fans', 'security', 'settings'],
+      },
+      coach: {
+        label: 'Head Coach / Coach',
+        canEdit: ['players', 'teams', 'matches', 'training', 'staff'],
+        visibleModules: ['dashboard', 'players', 'teams', 'matches', 'training', 'staff', 'security'],
+      },
+      analyst: {
+        label: 'Performance Analyst',
+        canEdit: ['matches', 'training', 'players'],
+        visibleModules: ['dashboard', 'players', 'matches', 'training', 'leagues', 'security'],
+      },
+      staff: {
+        label: 'Club Staff',
+        canEdit: ['players', 'fans'],
+        visibleModules: ['dashboard', 'players', 'fans', 'facilities', 'security'],
+      },
+      player: {
+        label: 'Player / Athlete',
+        canEdit: ['training'],
+        visibleModules: ['dashboard', 'training', 'security'],
+      },
+      guest: {
+        label: 'Guest (Read Only)',
+        canEdit: [],
+        visibleModules: ['dashboard', 'security'],
+      },
+    };
+
+    function applyRole(role) {
+      state.role = role;
+      const meta = roleRules[role];
+      secRole.textContent = meta.label;
+      document.getElementById('top-role-label').textContent = 'Role: ' + meta.label;
+
+      // Update permissions list
+      secPermissions.innerHTML = '';
+      if (meta.canEdit.length === 0) {
+        secPermissions.innerHTML = '<li>Read-only access to selected dashboards.</li>';
+      } else {
+        meta.canEdit.forEach(mod => {
+          const li = document.createElement('li');
+          li.textContent = 'Can edit ' + mod + ' module';
+          secPermissions.appendChild(li);
+        });
+      }
+
+      // Disable forms for read-only modules
+      const allForms = document.querySelectorAll('form');
+      allForms.forEach(form => {
+        const sec = form.closest('section');
+        if (!sec) return;
+        const can = meta.canEdit.includes(sec.id) || role === 'admin';
+        form.querySelectorAll('input, select, textarea, button[type="submit"]').forEach(el => {
+          if (el.tagName.toLowerCase() === 'button') {
+            el.disabled = !can;
+            el.classList.toggle('opacity-50', !can);
+            el.classList.toggle('cursor-not-allowed', !can);
+          } else {
+            el.disabled = !can && el.type !== 'button';
+          }
+        });
+      });
+
+      // Enforce module visibility
+      const allowed = meta.visibleModules;
+      sections.forEach(sec => {
+        const shouldShow = sec.id === 'dashboard' && allowed.includes('dashboard');
+        if (sec.id === 'dashboard') {
+          sec.classList.toggle('hidden', !shouldShow);
+        } else {
+          sec.classList.toggle('hidden', !allowed.includes(sec.id));
+        }
+      });
+      navLinks.forEach(btn => {
+        const isVisible = allowed.includes(btn.dataset.target);
+        btn.classList.toggle('hidden', !isVisible);
+      });
+
+      // Ensure we are on a visible section
+      showSection('dashboard');
+    }
+
+    roleSelect.addEventListener('change', e => applyRole(e.target.value));
+
+    // Settings: password and user/role management (demo only)
+    const passwordForm = document.getElementById('passwordForm');
+    const resetPassBtn = document.getElementById('resetPassBtn');
+    const passwordStatus = document.getElementById('passwordStatus');
+    const userForm = document.getElementById('userForm');
+    const userTable = document.getElementById('userTable');
+
+    if (passwordForm) {
+      passwordForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const current = document.getElementById('set-current-pass').value;
+        const next = document.getElementById('set-new-pass').value;
+        const confirm = document.getElementById('set-confirm-pass').value;
+        if (!current || !next || !confirm) {
+          passwordStatus.textContent = 'Please fill all password fields.';
+          passwordStatus.className = 'text-[10px] text-rose-600 mt-1';
+          return;
+        }
+        if (current !== state.password) {
+          passwordStatus.textContent = 'Current password is incorrect (demo check).';
+          passwordStatus.className = 'text-[10px] text-rose-600 mt-1';
+          return;
+        }
+        if (next !== confirm) {
+          passwordStatus.textContent = 'New passwords do not match.';
+          passwordStatus.className = 'text-[10px] text-rose-600 mt-1';
+          return;
+        }
+        state.password = next;
+        passwordStatus.textContent = 'Password updated for this session.';
+        passwordStatus.className = 'text-[10px] text-emerald-600 mt-1';
+        passwordForm.reset();
+      });
+
+      resetPassBtn.addEventListener('click', () => {
+        state.password = 'admin123';
+        passwordStatus.textContent = 'Password reset to default (admin123).';
+        passwordStatus.className = 'text-[10px] text-emerald-600 mt-1';
+      });
+    }
+
+    function renderUsers() {
+      if (!userTable) return;
+      userTable.innerHTML = '';
+      state.users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+          <td class="py-1.5">${u.name}</td>
+          <td class="py-1.5">${roleRules[u.role]?.label || u.role}</td>
+          <td class="py-1.5 text-right"><button type="button" data-role="${u.role}" class="use-user-role text-emerald-700 text-[11px] hover:underline">Use</button></td>
+        `;
+        userTable.appendChild(tr);
+      });
+
+      userTable.querySelectorAll('.use-user-role').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const r = btn.getAttribute('data-role');
+          if (roleRules[r]) {
+            roleSelect.value = r;
+            applyRole(r);
+          }
+        });
+      });
+    }
+
+    if (userForm) {
+      userForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('usr-name').value.trim();
+        const role = document.getElementById('usr-role').value;
+        if (!name) return;
+        const existing = state.users.find(u => u.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          existing.role = role;
+        } else {
+          state.users.push({ id: Date.now(), name, role });
+        }
+        userForm.reset();
+        renderUsers();
+      });
+    }
+
+    // Player Management
+    const playerForm = document.getElementById('playerForm');
+    const playerTable = document.getElementById('playerTable');
+    const filterSquad = document.getElementById('filter-squad');
+    const filterPosition = document.getElementById('filter-position');
+    const filterSearch = document.getElementById('filter-search');
+
+    playerForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const player = {
+        id: Date.now(),
+        name: document.getElementById('p-name').value.trim(),
+        age: parseInt(document.getElementById('p-age').value || '0', 10),
+        position: document.getElementById('p-position').value,
+        squad: document.getElementById('p-squad').value,
+        nationality: document.getElementById('p-nationality').value.trim(),
+        contact: document.getElementById('p-contact').value.trim(),
+        rating: parseInt(document.getElementById('p-rating').value || '0', 10),
+        fitness: parseInt(document.getElementById('p-fitness').value || '0', 10),
+        morale: parseInt(document.getElementById('p-morale').value || '0', 10),
+        wage: parseInt(document.getElementById('p-wage').value || '0', 10),
+        contractEnd: document.getElementById('p-contract-end').value,
+        medical: document.getElementById('p-medical').value.trim(),
+        scouting: document.getElementById('p-scouting').value.trim(),
+        injured: document.getElementById('p-injured').checked,
+      };
+      if (!player.name) return;
+      state.players.push(player);
+      playerForm.reset();
+      renderPlayers();
+      renderDashboard();
+      renderDevelopment();
+      renderDepthChart();
+    });
+
+    [filterSquad, filterPosition, filterSearch].forEach(el => {
+      el.addEventListener('input', renderPlayers);
+    });
+
+    function renderPlayers() {
+      const sq = filterSquad.value;
+      const pos = filterPosition.value;
+      const search = filterSearch.value.toLowerCase();
+      playerTable.innerHTML = '';
+      state.players
+        .filter(p => (!sq || p.squad === sq))
+        .filter(p => (!pos || p.position === pos))
+        .filter(p => (!search || p.name.toLowerCase().includes(search)))
+        .forEach(p => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-slate-50';
+          const contract = p.contractEnd ? new Date(p.contractEnd).getFullYear() : '-';
+          const flags = [];
+          if (p.injured) flags.push('Inj');
+          if (p.fitness && p.fitness < 70) flags.push('Low fit');
+          tr.innerHTML = `
+            <td class="py-1.5">${p.name}</td>
+            <td class="py-1.5">${p.position}</td>
+            <td class="py-1.5">${p.squad}</td>
+            <td class="py-1.5">${p.rating || '-'}</td>
+            <td class="py-1.5">${p.fitness || '-'}%</td>
+            <td class="py-1.5">${p.morale || '-'}/10</td>
+            <td class="py-1.5">£${p.wage || 0}/wk (${contract})</td>
+            <td class="py-1.5 text-right text-[10px] text-slate-500">${flags.join(', ')}</td>
+          `;
+          playerTable.appendChild(tr);
+        });
+    }
+
+    // Squad Depth Chart & Formation
+    const depthTable = document.getElementById('depthTable');
+    const formationSelect = document.getElementById('formationSelect');
+    const formationGrid = document.getElementById('formationGrid');
+
+    const depthPositions = ['GK', 'RB', 'CB', 'LB', 'DM', 'CM', 'AM', 'RW', 'LW', 'ST'];
+
+    function renderDepthChart() {
+      depthTable.innerHTML = '';
+      depthPositions.forEach(pos => {
+        const playersForPos = state.players
+          .filter(p => p.position === pos)
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+          <td class="py-1.5 font-semibold">${pos}</td>
+          <td class="py-1.5">${playersForPos[0]?.name || '-'}</td>
+          <td class="py-1.5">${playersForPos[1]?.name || '-'}</td>
+          <td class="py-1.5">${playersForPos[2]?.name || '-'}</td>
+        `;
+        depthTable.appendChild(tr);
+      });
+    }
+
+    function formationPositions(formation) {
+      // Very simplified, 5-column vertical grid
+      switch (formation) {
+        case '4-4-2':
+          return ['ST', 'ST', 'LW', 'CM', 'CM', 'RW', 'LB', 'CB', 'CB', 'RB', 'GK'];
+        case '3-5-2':
+          return ['ST', 'ST', 'LW', 'CM', 'CM', 'CM', 'RW', 'CB', 'CB', 'CB', 'GK'];
+        case '3-4-3':
+          return ['LW', 'ST', 'RW', 'CM', 'CM', 'LB', 'RB', 'CB', 'CB', 'CB', 'GK'];
+        case '5-3-2':
+          return ['ST', 'ST', 'CM', 'CM', 'CM', 'LWB', 'RWB', 'CB', 'CB', 'CB', 'GK'];
+        case '4-2-3-1':
+          return ['ST', 'LW', 'AM', 'RW', 'DM', 'DM', 'LB', 'CB', 'CB', 'RB', 'GK'];
+        default:
+          return ['ST', 'LW', 'CM', 'RW', 'CM', 'CM', 'LB', 'CB', 'CB', 'RB', 'GK'];
+      }
+    }
+
+    function renderFormation() {
+      const formation = formationSelect.value;
+      const positions = formationPositions(formation);
+      formationGrid.innerHTML = '';
+      positions.forEach((pos, index) => {
+        const div = document.createElement('button');
+        div.type = 'button';
+        div.className = 'border border-emerald-200 rounded px-1 py-1 bg-emerald-50 text-emerald-800 text-[10px] hover:bg-emerald-100';
+        div.textContent = pos + ' – (click to assign)';
+        div.addEventListener('click', () => {
+          const available = state.players.filter(p => p.position === pos);
+          if (!available.length) {
+            alert('No registered players for position ' + pos + '.');
+            return;
+          }
+          const names = available.map(p => p.name).join(', ');
+          alert('Assigning ' + pos + '. Available: ' + names + '\nUse a real system to drag & drop players onto the pitch.');
+        });
+        formationGrid.appendChild(div);
+      });
+    }
+
+    formationSelect.addEventListener('change', renderFormation);
+
+    // Training calendar seed
+    const trainingCalendarEl = document.getElementById('trainingCalendar');
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    function renderTrainingCalendar() {
+      trainingCalendarEl.innerHTML = '';
+      weekDays.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'border border-slate-100 bg-white rounded p-2 flex flex-col';
+        const title = document.createElement('div');
+        title.className = 'text-[11px] font-semibold mb-1';
+        title.textContent = d;
+        div.appendChild(title);
+        const daySessions = state.trainingSessions.filter(s => s.day.startsWith(d));
+        if (!daySessions.length) {
+          const p = document.createElement('p');
+          p.className = 'text-[10px] text-slate-400';
+          p.textContent = 'No session';
+          div.appendChild(p);
+        } else {
+          daySessions.forEach(s => {
+            const p = document.createElement('p');
+            p.className = 'text-[10px] text-slate-600';
+            p.textContent = s.focus + ' – ' + s.notes;
+            div.appendChild(p);
+          });
+        }
+        trainingCalendarEl.appendChild(div);
+      });
+    }
+
+    // Match Management
+    const fixtureForm = document.getElementById('fixtureForm');
+    const fixtureTable = document.getElementById('fixtureTable');
+    const fixtureFilter = document.getElementById('fixtureFilter');
+    const dashboardMatches = document.getElementById('dashboard-matches');
+
+    fixtureForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const fixture = {
+        id: Date.now(),
+        competition: document.getElementById('f-competition').value.trim() || 'Friendly',
+        date: document.getElementById('f-date').value,
+        venue: document.getElementById('f-venue').value,
+        opponent: document.getElementById('f-opponent').value.trim(),
+        referee: document.getElementById('f-referee').value.trim(),
+        goalsFor: parseInt(document.getElementById('f-goals-for').value || '0', 10),
+        goalsAgainst: parseInt(document.getElementById('f-goals-against').value || '0', 10),
+        status: document.getElementById('f-status').value,
+        possession: parseInt(document.getElementById('f-possession').value || '0', 10),
+        shots: parseInt(document.getElementById('f-shots').value || '0', 10),
+        fouls: parseInt(document.getElementById('f-fouls').value || '0', 10),
+        notes: document.getElementById('f-notes').value.trim(),
+      };
+      if (!fixture.date || !fixture.opponent) return;
+      state.fixtures.push(fixture);
+      fixtureForm.reset();
+      renderFixtures();
+      renderLeagueTable();
+      renderDashboard();
+    });
+
+    fixtureFilter.addEventListener('change', renderFixtures);
+
+    function renderFixtures() {
+      fixtureTable.innerHTML = '';
+      const filter = fixtureFilter.value;
+      const now = new Date();
+      state.fixtures
+        .slice()
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .filter(f => {
+          if (filter === 'upcoming') return new Date(f.date) >= now;
+          if (filter === 'played') return f.status === 'Played';
+          return true;
+        })
+        .forEach(f => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-slate-50';
+          const score = f.status === 'Played' ? `${f.goalsFor} - ${f.goalsAgainst}` : '-';
+          const stats = f.status === 'Played' ? `${f.possession || 0}% poss, ${f.shots || 0} shots, ${f.fouls || 0} fouls` : '';
+          tr.innerHTML = `
+            <td class="py-1.5">${formatDateTime(f.date)}</td>
+            <td class="py-1.5">${f.competition}</td>
+            <td class="py-1.5">${f.opponent}</td>
+            <td class="py-1.5">${f.venue}</td>
+            <td class="py-1.5">${score}</td>
+            <td class="py-1.5">${f.status}</td>
+            <td class="py-1.5 text-right text-[10px] text-slate-500">${stats}</td>
+          `;
+          fixtureTable.appendChild(tr);
+        });
+
+      // Dashboard subset
+      dashboardMatches.innerHTML = '';
+      state.fixtures
+        .slice()
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 5)
+        .forEach(f => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-slate-50';
+          tr.innerHTML = `
+            <td class="py-1.5">${formatDateTime(f.date)}</td>
+            <td class="py-1.5">${f.competition}</td>
+            <td class="py-1.5">vs ${f.opponent}</td>
+            <td class="py-1.5">${f.venue}</td>
+            <td class="py-1.5 text-right text-[10px] text-slate-500">${f.status}</td>
+          `;
+          dashboardMatches.appendChild(tr);
+        });
+    }
+
+    // League table (very simplified, one team: us vs opponents)
+    const leagueTableEl = document.getElementById('leagueTable');
+
+    function renderLeagueTable() {
+      const tableMap = new Map();
+      function ensureTeam(name) {
+        if (!tableMap.has(name)) {
+          tableMap.set(name, { team: name, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0 });
+        }
+        return tableMap.get(name);
+      }
+
+      state.fixtures
+        .filter(f => f.status === 'Played')
+        .forEach(f => {
+          const us = ensureTeam('Elite United');
+          const opp = ensureTeam(f.opponent || 'Opponent');
+          us.P++; opp.P++;
+          us.GF += f.goalsFor; us.GA += f.goalsAgainst;
+          opp.GF += f.goalsAgainst; opp.GA += f.goalsFor;
+          if (f.goalsFor > f.goalsAgainst) {
+            us.W++; opp.L++;
+          } else if (f.goalsFor < f.goalsAgainst) {
+            us.L++; opp.W++;
+          } else {
+            us.D++; opp.D++;
+          }
+        });
+
+      const rows = Array.from(tableMap.values()).map(t => ({
+        ...t,
+        GD: t.GF - t.GA,
+        Pts: t.W * 3 + t.D,
+      }));
+
+      rows.sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+
+      leagueTableEl.innerHTML = '';
+      rows.forEach((t, i) => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+          <td class="py-1.5">${i + 1}</td>
+          <td class="py-1.5 ${t.team === 'Elite United' ? 'font-semibold text-emerald-700' : ''}">${t.team}</td>
+          <td class="py-1.5">${t.P}</td>
+          <td class="py-1.5">${t.W}</td>
+          <td class="py-1.5">${t.D}</td>
+          <td class="py-1.5">${t.L}</td>
+          <td class="py-1.5">${t.GF}</td>
+          <td class="py-1.5">${t.GA}</td>
+          <td class="py-1.5">${t.GD}</td>
+          <td class="py-1.5">${t.Pts}</td>
+        `;
+        leagueTableEl.appendChild(tr);
+      });
+    }
+
+    // Tournament generation
+    const tournamentForm = document.getElementById('tournamentForm');
+    const tournamentBracket = document.getElementById('tournamentBracket');
+
+    tournamentForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('t-name').value.trim();
+      const teams = document.getElementById('t-teams').value
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+      if (!name || teams.length < 2) return;
+      state.tournament = { name, teams };
+      renderTournament();
+    });
+
+    function renderTournament() {
+      tournamentBracket.innerHTML = '';
+      const t = state.tournament;
+      if (!t) return;
+      const title = document.createElement('p');
+      title.className = 'font-semibold text-slate-700';
+      title.textContent = t.name + ' – Knockout Bracket (auto-paired)';
+      tournamentBracket.appendChild(title);
+
+      const ul = document.createElement('ul');
+      ul.className = 'space-y-1 list-disc list-inside text-slate-600';
+      for (let i = 0; i < t.teams.length; i += 2) {
+        const a = t.teams[i];
+        const b = t.teams[i + 1];
+        const li = document.createElement('li');
+        li.textContent = b ? `${a} vs ${b}` : `${a} (bye)`;
+        ul.appendChild(li);
+      }
+      tournamentBracket.appendChild(ul);
+    }
+
+    // Training & Coaching forms
+    const trainingPlanForm = document.getElementById('trainingPlanForm');
+    const trainingPlanList = document.getElementById('trainingPlanList');
+    const developmentList = document.getElementById('developmentList');
+    const coachNoteForm = document.getElementById('coachNoteForm');
+    const coachNotesEl = document.getElementById('coachNotes');
+
+    trainingPlanForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const session = {
+        id: Date.now(),
+        day: document.getElementById('tr-day').value,
+        focus: document.getElementById('tr-focus').value,
+        notes: document.getElementById('tr-notes').value.trim(),
+      };
+      state.trainingSessions.push(session);
+      trainingPlanForm.reset();
+      renderTrainingPlan();
+      renderTrainingCalendar();
+      renderDashboard();
+    });
+
+    function renderTrainingPlan() {
+      trainingPlanList.innerHTML = '';
+      state.trainingSessions.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'border border-slate-100 rounded p-2 bg-slate-50';
+        div.innerHTML = `<p class="font-semibold text-[11px]">${s.day}</p><p class="text-[10px] text-slate-600">${s.focus} – ${s.notes || ''}</p>`;
+        trainingPlanList.appendChild(div);
+      });
+    }
+
+    function renderDevelopment() {
+      developmentList.innerHTML = '';
+      if (!state.players.length) {
+        const p = document.createElement('p');
+        p.className = 'text-[10px] text-slate-400';
+        p.textContent = 'Add players to see development overview.';
+        developmentList.appendChild(p);
+        return;
+      }
+      state.players.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'border border-slate-100 rounded p-2 bg-slate-50';
+        const fitness = p.fitness || 0;
+        const morale = p.morale || 0;
+        div.innerHTML = `
+          <p class="text-[11px] font-semibold mb-1">${p.name} <span class="text-slate-400 text-[10px]">(${p.position}, ${p.squad})</span></p>
+          <p class="text-[10px] text-slate-600 mb-1">Fitness: ${fitness}% · Morale: ${morale}/10 · Rating: ${p.rating || '-'} / 100</p>
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
+            <div class="h-full bg-emerald-500" style="width:${fitness}%"></div>
+          </div>
+          <p class="text-[10px] text-slate-500">Notes: ${p.scouting || 'No detailed scouting report yet.'}</p>
+        `;
+        developmentList.appendChild(div);
+      });
+    }
+
+    coachNoteForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const note = {
+        id: Date.now(),
+        player: document.getElementById('cn-player').value.trim(),
+        text: document.getElementById('cn-note').value.trim(),
+      };
+      if (!note.player || !note.text) return;
+      state.coachNotes.unshift(note);
+      coachNoteForm.reset();
+      renderCoachNotes();
+    });
+
+    function renderCoachNotes() {
+      coachNotesEl.innerHTML = '';
+      state.coachNotes.forEach(n => {
+        const li = document.createElement('div');
+        li.className = 'border border-slate-100 rounded px-2 py-1 bg-slate-50';
+        li.innerHTML = `<span class="font-semibold">${n.player}:</span> <span class="text-slate-600">${n.text}</span>`;
+        coachNotesEl.appendChild(li);
+      });
+    }
+
+    // Tactics
+    const tacticsForm = document.getElementById('tacticsForm');
+    const tacticsStatus = document.getElementById('tacticsStatus');
+
+    tacticsForm.addEventListener('submit', e => {
+      e.preventDefault();
+      state.tactics = {
+        mentality: document.getElementById('tac-mentality').value,
+        press: document.getElementById('tac-press').value,
+        inPossession: document.getElementById('tac-possession').value.trim(),
+        outOfPossession: document.getElementById('tac-out').value.trim(),
+      };
+      tacticsStatus.textContent = 'Tactical plan saved for next fixture.';
+      setTimeout(() => (tacticsStatus.textContent = ''), 3000);
+    });
+
+    // Finance
+    const financeForm = document.getElementById('financeForm');
+    const financeTable = document.getElementById('financeTable');
+    const finIncome = document.getElementById('fin-income');
+    const finExpense = document.getElementById('fin-expense');
+    const finNet = document.getElementById('fin-net');
+
+    financeForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const entry = {
+        id: Date.now(),
+        desc: document.getElementById('fin-desc').value.trim(),
+        type: document.getElementById('fin-type').value,
+        amount: parseFloat(document.getElementById('fin-amount').value || '0'),
+        category: document.getElementById('fin-cat').value,
+      };
+      if (!entry.desc || !entry.amount) return;
+      state.finances.push(entry);
+      financeForm.reset();
+      renderFinances();
+      renderDashboard();
+    });
+
+    function renderFinances() {
+      financeTable.innerHTML = '';
+      let inc = 0;
+      let exp = 0;
+      state.finances.forEach(f => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+          <td class="py-1.5">${f.desc}</td>
+          <td class="py-1.5">${f.type}</td>
+          <td class="py-1.5">${f.category}</td>
+          <td class="py-1.5 text-right">${formatCurrency(f.amount)}</td>
+        `;
+        financeTable.appendChild(tr);
+        if (f.type === 'income') inc += f.amount; else exp += f.amount;
+      });
+      finIncome.textContent = formatCurrency(inc);
+      finExpense.textContent = formatCurrency(exp);
+      finNet.textContent = formatCurrency(inc - exp);
+    }
+
+    // Transfers
+    const transferForm = document.getElementById('transferForm');
+    const transferTable = document.getElementById('transferTable');
+
+    transferForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const t = {
+        id: Date.now(),
+        player: document.getElementById('tr-player').value.trim(),
+        from: document.getElementById('tr-from').value.trim(),
+        to: document.getElementById('tr-to').value.trim(),
+        type: document.getElementById('tr-type').value,
+        fee: parseFloat(document.getElementById('tr-fee').value || '0'),
+        status: document.getElementById('tr-status').value,
+        clauses: document.getElementById('tr-clauses').value.trim(),
+      };
+      if (!t.player || !t.from || !t.to) return;
+      state.transfers.unshift(t);
+      transferForm.reset();
+      renderTransfers();
+    });
+
+    function renderTransfers() {
+      transferTable.innerHTML = '';
+      state.transfers.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+          <td class="py-1.5">${t.player}</td>
+          <td class="py-1.5">${t.from}</td>
+          <td class="py-1.5">${t.to}</td>
+          <td class="py-1.5">${t.type}</td>
+          <td class="py-1.5">${t.type === 'Free Transfer' ? 'Free' : formatCurrency(t.fee)}</td>
+          <td class="py-1.5">${t.status}</td>
+        `;
+        transferTable.appendChild(tr);
+      });
+    }
+
+    // Staff
+    const staffForm = document.getElementById('staffForm');
+    const staffTable = document.getElementById('staffTable');
+
+    staffForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const s = {
+        id: Date.now(),
+        name: document.getElementById('st-name').value.trim(),
+        role: document.getElementById('st-role').value,
+        discipline: parseInt(document.getElementById('st-discipline').value || '0', 10),
+        motivation: parseInt(document.getElementById('st-motivation').value || '0', 10),
+        contractEnd: document.getElementById('st-contract').value,
+      };
+      if (!s.name) return;
+      state.staff.push(s);
+      staffForm.reset();
+      renderStaff();
+    });
+
+    function renderStaff() {
+      staffTable.innerHTML = '';
+      state.staff.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+          <td class="py-1.5">${s.name}</td>
+          <td class="py-1.5">${s.role}</td>
+          <td class="py-1.5">${s.discipline || '-'}</td>
+          <td class="py-1.5">${s.motivation || '-'}</td>
+          <td class="py-1.5">${s.contractEnd || '-'}</td>
+        `;
+        staffTable.appendChild(tr);
+      });
+    }
+
+    // Facilities – maintenance
+    const maintenanceForm = document.getElementById('maintenanceForm');
+    const maintenanceList = document.getElementById('maintenanceList');
+
+    maintenanceForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const m = {
+        id: Date.now(),
+        task: document.getElementById('mt-task').value.trim(),
+        area: document.getElementById('mt-area').value,
+        status: 'Open',
+      };
+      if (!m.task) return;
+      state.maintenance.unshift(m);
+      maintenanceForm.reset();
+      renderMaintenance();
+    });
+
+    function renderMaintenance() {
+      maintenanceList.innerHTML = '';
+      state.maintenance.forEach(m => {
+        const li = document.createElement('li');
+        li.className = 'border border-slate-100 rounded px-2 py-1 bg-slate-50 flex justify-between items-center';
+        li.innerHTML = `<span>${m.task} – <span class="text-slate-500">${m.area}</span></span><span class="text-[10px] text-emerald-700">${m.status}</span>`;
+        maintenanceList.appendChild(li);
+      });
+    }
+
+    // Fans & members
+    const memberForm = document.getElementById('memberForm');
+    const memberTable = document.getElementById('memberTable');
+    const messageForm = document.getElementById('messageForm');
+    const messageLog = document.getElementById('messageLog');
+
+    memberForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const m = {
+        id: Date.now(),
+        name: document.getElementById('mb-name').value.trim(),
+        email: document.getElementById('mb-email').value.trim(),
+        type: document.getElementById('mb-type').value,
+      };
+      if (!m.name || !m.email) return;
+      state.members.push(m);
+      memberForm.reset();
+      renderMembers();
+    });
+
+    function renderMembers() {
+      memberTable.innerHTML = '';
+      state.members.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        const tickets = m.type === 'Season Ticket' ? 19 : m.type === 'VIP' ? 10 : m.type === 'Junior' ? 5 : 3;
+        tr.innerHTML = `
+          <td class="py-1.5">${m.name}</td>
+          <td class="py-1.5">${m.email}</td>
+          <td class="py-1.5">${m.type}</td>
+          <td class="py-1.5">${tickets}</td>
+        `;
+        memberTable.appendChild(tr);
+      });
+    }
+
+    messageForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const msg = {
+        id: Date.now(),
+        audience: document.getElementById('msg-audience').value,
+        subject: document.getElementById('msg-subject').value.trim(),
+        body: document.getElementById('msg-body').value.trim(),
+      };
+      if (!msg.subject || !msg.body) return;
+      state.messages.unshift(msg);
+      messageForm.reset();
+      renderMessages();
+    });
+
+    function renderMessages() {
+      messageLog.innerHTML = '';
+      state.messages.forEach(m => {
+        const li = document.createElement('li');
+        li.className = 'border border-slate-100 rounded px-2 py-1 bg-slate-50';
+        li.innerHTML = `<span class="font-semibold">${m.audience}</span>: ${m.subject}`;
+        messageLog.appendChild(li);
+      });
+    }
+
+    // Dashboard stats
+    const statPlayers = document.getElementById('stat-players');
+    const statFixtures = document.getElementById('stat-fixtures');
+    const statBalance = document.getElementById('stat-balance');
+    const statTraining = document.getElementById('stat-training');
+    const statInjuries = document.getElementById('stat-injuries');
+    const barInjuries = document.getElementById('bar-injuries');
+    const statFitness = document.getElementById('stat-fitness');
+    const barFitness = document.getElementById('bar-fitness');
+    const statMorale = document.getElementById('stat-morale');
+    const textMoraleDetail = document.getElementById('text-morale-detail');
+
+    function renderDashboard() {
+      statPlayers.textContent = state.players.length;
+      const now = new Date();
+      const in7days = new Date();
+      in7days.setDate(now.getDate() + 7);
+      const upcoming = state.fixtures.filter(f => {
+        const d = new Date(f.date);
+        return d >= now && d <= in7days;
+      }).length;
+      statFixtures.textContent = upcoming;
+
+      const inc = state.finances.filter(f => f.type === 'income').reduce((s, f) => s + f.amount, 0);
+      const exp = state.finances.filter(f => f.type === 'expense').reduce((s, f) => s + f.amount, 0);
+      statBalance.textContent = formatCurrency(inc - exp);
+
+      statTraining.textContent = state.trainingSessions.length;
+
+      // Injuries & fitness
+      const injuredCount = state.players.filter(p => p.injured).length;
+      statInjuries.textContent = injuredCount;
+      const injuryPercent = state.players.length ? (injuredCount / state.players.length) * 100 : 0;
+      barInjuries.style.width = injuryPercent + '%';
+
+      const avgFitness = state.players.length
+        ? Math.round(state.players.reduce((s, p) => s + (p.fitness || 0), 0) / state.players.length)
+        : 0;
+      statFitness.textContent = state.players.length ? avgFitness + '%' : '-';
+      barFitness.style.width = avgFitness + '%';
+
+      const avgMorale = state.players.length
+        ? (state.players.reduce((s, p) => s + (p.morale || 0), 0) / state.players.length).toFixed(1)
+        : null;
+      statMorale.textContent = avgMorale ? avgMorale + '/10' : '-';
+      textMoraleDetail.textContent = avgMorale
+        ? avgMorale >= 7
+          ? 'Squad morale is generally high. Maintain training intensity and rotation.'
+          : avgMorale >= 5
+            ? 'Morale is mixed. Monitor game time and feedback in coach notes.'
+            : 'Morale is low. Consider team meetings, rest days and role clarity.'
+        : 'Add players and their morale ratings to see a morale summary.';
+    }
+
+    // Initial demo data (to make the UI meaningful immediately)
+    function seedDemoData() {
+      state.players.push(
+        {
+          id: 1,
+          name: 'Alex Carter',
+          age: 24,
+          position: 'ST',
+          squad: 'First Team',
+          nationality: 'English',
+          contact: 'Agent: Premier Sports',
+          rating: 82,
+          fitness: 94,
+          morale: 8,
+          wage: 22000,
+          contractEnd: new Date(new Date().getFullYear() + 3, 5, 30).toISOString().slice(0, 10),
+          medical: 'No current issues.',
+          scouting: 'Clinical finisher, high work rate, good off-the-ball.',
+          injured: false,
+        },
+        {
+          id: 2,
+          name: 'Miguel Santos',
+          age: 21,
+          position: 'CM',
+          squad: 'First Team',
+          nationality: 'Portuguese',
+          contact: 'Agent: Iberia Talent',
+          rating: 79,
+          fitness: 88,
+          morale: 7,
+          wage: 15000,
+          contractEnd: new Date(new Date().getFullYear() + 2, 5, 30).toISOString().slice(0, 10),
+          medical: 'Managed groin load. Monitor minutes.',
+          scouting: 'Excellent passing range, composed under pressure.',
+          injured: false,
+        },
+        {
+          id: 3,
+          name: 'Liam O9Reilly',
+          age: 19,
+          position: 'CB',
+          squad: 'U21',
+          nationality: 'Irish',
+          contact: 'Parent contact on file',
+          rating: 74,
+          fitness: 76,
+          morale: 6,
+          wage: 2500,
+          contractEnd: new Date(new Date().getFullYear() + 1, 5, 30).toISOString().slice(0, 10),
+          medical: 'Grade 1 ankle sprain, due back in 10 days.',
+          scouting: 'Strong aerial presence, needs to improve positioning.',
+          injured: true,
+        }
+      );
+
+      const now = new Date();
+      const oneDay = 24 * 60 * 60 * 1000;
+      state.fixtures.push(
+        {
+          id: 1,
+          competition: 'League',
+          date: new Date(now.getTime() + 2 * oneDay).toISOString(),
+          venue: 'Home',
+          opponent: 'Riverside FC',
+          referee: 'J. Taylor',
+          goalsFor: 0,
+          goalsAgainst: 0,
+          status: 'Scheduled',
+          possession: 0,
+          shots: 0,
+          fouls: 0,
+          notes: '',
+        },
+        {
+          id: 2,
+          competition: 'League',
+          date: new Date(now.getTime() - 3 * oneDay).toISOString(),
+          venue: 'Away',
+          opponent: 'Harbour Town',
+          referee: 'L. Smith',
+          goalsFor: 2,
+          goalsAgainst: 1,
+          status: 'Played',
+          possession: 57,
+          shots: 14,
+          fouls: 9,
+          notes: 'Strong second-half performance; Santos MOTM.',
+        }
+      );
+
+      state.trainingSessions.push(
+        { id: 1, day: 'Monday', focus: 'Recovery', notes: 'Post-match recovery & analysis.' },
+        { id: 2, day: 'Tuesday', focus: 'Technical', notes: 'Rondo, passing grids, finishing.' },
+        { id: 3, day: 'Thursday', focus: 'Tactical', notes: '11v11 shape & set pieces.' },
+      );
+
+      state.finances.push(
+        { id: 1, desc: 'Main Shirt Sponsor', type: 'income', amount: 50000, category: 'Sponsorship' },
+        { id: 2, desc: 'Matchday Ticket Sales', type: 'income', amount: 18000, category: 'Ticketing' },
+        { id: 3, desc: 'Player Wages', type: 'expense', amount: 62000, category: 'Wages' }
+      );
+
+      state.transfers.push(
+        {
+          id: 1,
+          player: 'Alex Carter',
+          from: 'Elite United',
+          to: 'Elite United',
+          type: 'Permanent',
+          fee: 0,
+          status: 'Completed',
+          clauses: 'Extended contract last season.',
+        }
+      );
+
+      state.staff.push(
+        { id: 1, name: 'Daniel Hughes', role: 'Head Coach', discipline: 16, motivation: 18, contractEnd: new Date(new Date().getFullYear() + 2, 5, 30).toISOString().slice(0, 10) },
+        { id: 2, name: 'Sarah Kim', role: 'Analyst', discipline: 17, motivation: 17, contractEnd: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().slice(0, 10) }
+      );
+
+      state.maintenance.push(
+        { id: 1, task: 'Pitch aeration & sanding', area: 'Stadium', status: 'Open' },
+        { id: 2, task: 'Gym equipment inspection', area: 'Gym', status: 'Open' }
+      );
+
+      state.members.push(
+        { id: 1, name: 'Jamie Lee', email: 'jamie@example.com', type: 'Season Ticket' },
+        { id: 2, name: 'Priya Patel', email: 'priya@example.com', type: 'Member' }
+      );
+
+      state.coachNotes.push({ id: 1, player: 'Alex Carter', text: 'Thrives as advanced forward; great pressing from front.' });
+
+      // Demo users for Settings
+      state.users.push(
+        { id: 1, name: 'Club Admin', role: 'admin' },
+        { id: 2, name: 'Head Coach', role: 'coach' },
+        { id: 3, name: 'Analyst Team', role: 'analyst' }
+      );
+    }
+
+    // Initial render
+    seedDemoData();
+    renderPlayers();
+    renderDepthChart();
+    renderFormation();
+    renderFixtures();
+    renderLeagueTable();
+    renderTrainingPlan();
+    renderTrainingCalendar();
+    renderDevelopment();
+    renderCoachNotes();
+    renderFinances();
+    renderTransfers();
+    renderStaff();
+    renderMaintenance();
+    renderMembers();
+    renderMessages();
+    renderDashboard();
+    renderUsers();
+    applyRole('admin');
+  </script>
+</body>
+</html>
